@@ -8,12 +8,82 @@
 <meta property="og:description" content="11/27(금) 오후 7시 · 로마옥 도곡 · 와인과 함께하는 우리만의 연말 파티">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Playfair+Display:ital,wght@1,500&family=Great+Vibes&display=swap" rel="stylesheet">
 <style>
-  :root { --cream: #f7f1e8; --ink: #3b2a22; --muted: #8a7566; --line: #e2d4c0; --red: #a51c2a; --green: #2f5d3a; --brown: #7a4b2a; }
+  :root { --cream: #f7f1e8; --ink: #3b2a22; --muted: #8a7566; --line: #e2d4c0; --red: #a51c2a; --green: #2f5d3a; --brown: #7a4b2a; --gold: #c9a75a; --night: #142619; --pine: #2c4a37; --ink-green: #1e4a33;
+    /* 종이 질감: 아주 옅은 노이즈. 오래된 얼룩 대신 결만 살린다. */
+    --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .33 0 0 0 0 .2 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
   * { box-sizing: border-box; margin: 0; }
-  body { background: var(--cream); color: var(--ink); font-family: 'Gowun Batang', serif; line-height: 1.7; }
-  main { max-width: 420px; margin: 0 auto; padding: 48px 16px 64px; text-align: center; }
+  body { min-height: 100vh; background: radial-gradient(ellipse at top, var(--pine), var(--night) 70%) fixed var(--night); color: var(--ink); font-family: 'Gowun Batang', serif; line-height: 1.7; word-break: keep-all; }
+  body:not(.opened) { overflow: hidden; }
+  #snow { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 20; }
+
+  /* 봉투 인트로: 앞면(주소) → 탭하면 뒤집혀 뒷면(봉인) → 봉인을 누르면 열린다 */
+  .intro { position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; padding: 16px; transition: opacity .7s, transform .7s; }
+  .intro.gone { opacity: 0; transform: scale(1.06); pointer-events: none; }
+  .parchment { background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(110,75,35,.28) 100%), url(paper.jpg) center / cover, #e3cfa8; }
+  .envelope { position: relative; display: block; width: min(330px, 88vw); aspect-ratio: 3 / 2; margin-top: 90px; padding: 0; border: 0; background: none; font: inherit; color: inherit; cursor: pointer; animation: float 3s ease-in-out infinite; }
+  .envelope.turning { animation: turn .8s ease-in-out; }
+  .envelope.open { animation: none; }
+  .env-face { position: absolute; inset: 0; display: block; }
+
+  .front-side { border-radius: 6px; box-shadow: 0 18px 40px rgba(0,0,0,.45); text-align: left; }
+  .address { position: absolute; left: 24px; top: 54%; transform: translateY(-50%); color: var(--ink-green); line-height: 1.55; }
+  .address > span { display: block; font-size: 15px; }
+  .address .to { font-size: 24px; font-weight: 700; margin-bottom: 2px; }
+  .address .to i { font-family: 'Great Vibes', cursive; font-style: normal; font-weight: 400; font-size: 30px; margin-right: 6px; }
+  .address > span:nth-child(2) { margin-left: 16px; }
+  .address > span:nth-child(3) { margin-left: 32px; }
+  .address > span:nth-child(4) { margin-left: 48px; }
+  .stamp { position: absolute; top: 14px; right: 16px; width: 46px; height: 56px; display: grid; place-items: center; background: var(--red); border: 4px dotted #f6efe0; color: #f6efe0; font-size: 20px; transform: rotate(4deg); }
+  .postmark { position: absolute; top: 20px; right: 44px; width: 58px; height: 58px; display: grid; place-items: center; border: 1.5px solid rgba(58,46,36,.35); border-radius: 50%; color: rgba(58,46,36,.5); font: 8px/1.3 'Playfair Display', serif; text-align: center; transform: rotate(-14deg); }
+
+  .back-side { display: none; perspective: 900px; }
+  .envelope.flipped .front-side { display: none; }
+  .envelope.flipped .back-side { display: block; }
+  .back-side > * { position: absolute; display: block; }
+  .env-back { inset: 0; border-radius: 6px; box-shadow: 0 18px 40px rgba(0,0,0,.45); filter: brightness(.92); }
+  .letter { left: 6%; right: 6%; top: 6%; height: 88%; z-index: 1; border-radius: 4px; display: flex !important; flex-direction: column; align-items: center; justify-content: center; gap: 2px; transition: transform .9s cubic-bezier(.2,.8,.2,1) .45s; }
+  .letter b { font-size: 19px; color: var(--ink); }
+  .letter small { font-size: 12px; color: var(--muted); letter-spacing: .1em; }
+  /* 덮개 네 장이 가운데서 만나는 X자 봉투. 덮개마다 그림자를 줘서 접힌 선이 보이게 한다. */
+  .fold { inset: 0; filter: drop-shadow(0 0 1px rgba(70,45,20,.55)) drop-shadow(0 1px 3px rgba(70,45,20,.2)); }
+  .fold > span { position: absolute; inset: 0; border-radius: 6px; }
+  .sides { z-index: 2; }
+  .sides > span { clip-path: polygon(0 0, 50% 50%, 100% 0, 100% 100%, 0 100%); }
+  .bottom { z-index: 2; }
+  .bottom > span { clip-path: polygon(0 100%, 50% 47%, 100% 100%); }
+  .flap-wrap { z-index: 3; transform-origin: top; transition: transform .6s ease-in, z-index 0s .3s; }
+  .flap-wrap > span { clip-path: polygon(0 0, 100% 0, 50% 53%); }
+  .twine { left: 50%; top: 0; bottom: 0; z-index: 4; width: 7px; margin-left: -3.5px; border-left: 1.5px solid #8a6a3e; border-right: 1.5px solid #8a6a3e; transition: opacity .3s; }
+  .bottom > span { filter: brightness(.97); }
+  .flap-wrap > span { filter: brightness(1.03); }
+  .seal { left: 50%; top: 50%; z-index: 5; width: 88px; height: 88px; margin: -44px 0 0 -44px; object-fit: contain; filter: drop-shadow(0 3px 4px rgba(0,0,0,.4)); }
+  .envelope.open .seal { animation: pop .5s forwards; }
+  .envelope.open .twine { opacity: 0; }
+  .envelope.open .flap-wrap { transform: rotateX(180deg); z-index: 0; }
+  .envelope.open .letter { transform: translateY(-62%); }
+  .hint { color: var(--gold); font-size: 14px; animation: blink 1.6s ease-in-out infinite; }
+  @keyframes float { 50% { transform: translateY(-8px); } }
+  @keyframes turn { 50% { transform: perspective(900px) rotateY(90deg); } }
+  @keyframes pop { to { transform: translateY(-24px) rotate(-25deg) scale(1.2); opacity: 0; } }
+  @keyframes blink { 50% { opacity: .35; } }
+
+  /* 초대장 본문: 봉투가 열리면 위에서부터 펼쳐지고, 내용이 차례로 올라온다 */
+  main { max-width: 440px; margin: 0 auto; padding: 32px 16px 96px; filter: drop-shadow(0 20px 40px rgba(0,0,0,.4)); }
+  .paper { position: relative; background: var(--noise), var(--cream); border-radius: 16px; padding: 40px 22px 48px; text-align: center; clip-path: inset(0 0 100% 0 round 16px); }
+  .paper::before { content: ''; position: absolute; inset: 8px; border: 1px solid var(--gold); border-radius: 11px; pointer-events: none; }
+  body.opened .paper { animation: unfold 1.2s cubic-bezier(.3,.7,.2,1) forwards; }
+  @keyframes unfold { to { clip-path: inset(0 0 0 0 round 16px); } }
+  .reveal { opacity: 0; transform: translateY(18px); }
+  body.opened .reveal { animation: rise .8s cubic-bezier(.2,.7,.2,1) forwards; animation-delay: calc(var(--i) * 120ms + 300ms); }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+
+  .holly { display: block; margin: 0 auto 6px; }
+  .holly .berry { animation: twinkle 2.4s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+  .holly .berry:nth-child(4) { animation-delay: .4s; }
+  .holly .berry:nth-child(5) { animation-delay: .8s; }
+  @keyframes twinkle { 50% { transform: scale(1.25); } }
   .script { font-family: 'Playfair Display', serif; font-style: italic; color: var(--red); }
   h1 { font-size: 28px; margin: 4px 0 28px; }
   .info { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 20px 4px; text-align: left; display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; }
@@ -29,61 +99,111 @@
   .tag { margin: 0 0 16px; font-size: 15px; }
   .tag b { color: var(--red); font-size: 20px; }
   .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .card { perspective: 800px; height: 200px; padding: 0; border: 0; background: none; font: inherit; color: inherit; cursor: pointer; }
+  .card { perspective: 800px; height: 200px; padding: 0; border: 0; background: none; font: inherit; color: inherit; cursor: pointer; transition: transform .2s; }
+  .card:active { transform: scale(.97); }
   .inner { position: relative; height: 100%; transition: transform .6s; transform-style: preserve-3d; }
   .card.open .inner { transform: rotateY(180deg); }
-  .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 14px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; padding: 12px; }
+  .card.shake { animation: shake .4s; }
+  @keyframes shake { 25% { transform: rotate(-3deg); } 75% { transform: rotate(3deg); } }
+  .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 14px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; padding: 12px; overflow: hidden; }
   .front { color: #fff; background: var(--red); }
+  .front::after { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 35%, rgba(255,255,255,.25) 50%, transparent 65%); transform: translateX(-100%); animation: shine 3.5s ease-in-out infinite; }
+  @keyframes shine { 40%, 100% { transform: translateX(100%); } }
   .card.gift .front { background: var(--green); }
   .back { background: #fff; border: 1px solid var(--line); transform: rotateY(180deg); }
   .big { font-size: 26px; font-weight: 700; }
   .small { font-size: 13px; color: var(--muted); }
+  .front .small { color: #fff; }
   .swatch { width: 44px; height: 44px; border-radius: 50%; }
   .cheers { font-size: 22px; margin-top: 44px; }
+
+  .music { position: fixed; right: 16px; bottom: 16px; z-index: 30; padding: 8px 14px; border: 1px solid var(--gold); border-radius: 999px; background: rgba(20,38,25,.85); color: var(--cream); font: inherit; font-size: 13px; cursor: pointer; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  }
 </style>
 </head>
 <body>
+<canvas id="snow" aria-hidden="true"></canvas>
+
+<div class="intro" id="intro">
+  <button class="envelope" id="envelope" type="button" aria-label="봉투 뒤집기">
+    <span class="env-face front-side parchment">
+      <span class="stamp">♥</span>
+      <span class="postmark">SEOUL<br>27 NOV<br>2026</span>
+      <span class="address">
+        <span class="to"><i>To.</i><span id="to">소중한 당신</span></span>
+        <span>2026 연말 걸스파티</span>
+        <span>로마옥 도곡, 강남대로48길 11</span>
+        <span>11월 27일 금요일 저녁 7시</span>
+      </span>
+    </span>
+    <span class="env-face back-side">
+      <span class="env-back parchment"></span>
+      <span class="letter parchment"><span class="script">You're invited</span><b>2026 연말 걸스파티</b><small>11.27 FRI 7PM</small></span>
+      <span class="fold sides"><span class="parchment"></span></span>
+      <span class="fold bottom"><span class="parchment"></span></span>
+      <span class="fold flap-wrap"><span class="parchment"></span></span>
+      <span class="twine"></span>
+      <img class="seal" src="seal.png" alt="">
+    </span>
+  </button>
+  <p class="hint" id="hint">봉투를 탭해서 뒤집어 보세요</p>
+</div>
+
 <main>
-  <p class="script">You're invited</p>
-  <h1>2026 연말 걸스파티</h1>
+  <div class="paper">
+    <svg class="holly reveal" style="--i:0" width="64" height="34" viewBox="0 0 64 34" aria-hidden="true">
+      <ellipse cx="20" cy="18" rx="16" ry="7" fill="#2f5d3a" transform="rotate(-20 20 18)"/>
+      <ellipse cx="44" cy="18" rx="16" ry="7" fill="#3d7049" transform="rotate(20 44 18)"/>
+      <circle class="berry" cx="28" cy="22" r="5" fill="#a51c2a"/>
+      <circle class="berry" cx="36" cy="22" r="5" fill="#c22a3a"/>
+      <circle class="berry" cx="32" cy="15" r="5" fill="#a51c2a"/>
+    </svg>
+    <p class="script reveal" style="--i:1">You're invited</p>
+    <h1 class="reveal" style="--i:2">2026 연말 걸스파티</h1>
 
-  <dl class="info">
-    <dt>일시</dt><dd>11/27(금) 오후 7시</dd>
-    <dt>장소</dt><dd>로마옥 도곡</dd>
-    <dt>드레스코드</dt><dd><span class="dot" style="background:var(--red)"></span><span class="dot" style="background:var(--green)"></span><span class="dot" style="background:var(--brown)"></span> 레드 · 그린 · 브라운 포인트 컬러</dd>
-    <dt>선물</dt><dd>2만원 미만 선물 하나씩 준비하기<br>(번호 붙여 오기, 당일 7시 랜덤 오픈)</dd>
-  </dl>
+    <dl class="info reveal" style="--i:3">
+      <dt>일시</dt><dd>11/27(금) 오후 7시</dd>
+      <dt>장소</dt><dd>로마옥 도곡</dd>
+      <dt>드레스코드</dt><dd><span class="dot" style="background:var(--red)"></span><span class="dot" style="background:var(--green)"></span><span class="dot" style="background:var(--brown)"></span> 레드 · 그린 · 브라운 포인트 컬러</dd>
+      <dt>선물</dt><dd>2만원 미만 선물 하나씩<br>(번호 붙여 오기, 7시 랜덤 오픈)</dd>
+    </dl>
 
-  <div class="map">
-    <iframe title="로마옥 도곡 위치" loading="lazy"
-      src="https://www.openstreetmap.org/export/embed.html?bbox=127.0311%2C37.4851%2C127.0371%2C37.4887&layer=mapnik&marker=37.4869199%2C127.0341174"></iframe>
-    <small>서울 강남구 강남대로48길 11 1층</small>
-    <a href="https://naver.me/FQVGsm3j">네이버 지도로 길찾기</a>
-  </div>
-
-  <p class="msg">와인과 함께하는 우리만의 연말 파티<br>예쁘게 차려입고 맛있는 거 먹으면서<br>행복한 추억 만들어보자</p>
-
-  <section id="draw" hidden>
-    <p class="hello"><span id="name"></span>님, 카드를 눌러 뽑아 보세요</p>
-    <p class="tag">내 선물엔 <b id="tag"></b>번을 붙여 와 주세요</p>
-    <div class="cards">
-      <button class="card" type="button" aria-label="드레스코드 뽑기">
-        <div class="inner">
-          <div class="face front"><span class="small" style="color:#fff">내 포인트 컬러</span><span class="big">?</span></div>
-          <div class="face back"><div class="swatch" id="swatch"></div><span class="big" id="color"></span><span class="small">포인트 컬러</span></div>
-        </div>
-      </button>
-      <button class="card gift" type="button" aria-label="선물 뽑기">
-        <div class="inner">
-          <div class="face front"><span class="small" style="color:#fff">랜덤 선물</span><span class="big">?</span><span class="small" style="color:#fff" id="lock">11/27 오후 7시에 열려요</span></div>
-          <div class="face back"><span class="big"><span id="take"></span>번</span><span class="small">선물을 가져가요</span></div>
-        </div>
-      </button>
+    <div class="map reveal" style="--i:4">
+      <iframe title="로마옥 도곡 위치" loading="lazy"
+        src="https://www.openstreetmap.org/export/embed.html?bbox=127.0311%2C37.4851%2C127.0371%2C37.4887&layer=mapnik&marker=37.4869199%2C127.0341174"></iframe>
+      <small>서울 강남구 강남대로48길 11 1층</small>
+      <a href="https://naver.me/FQVGsm3j">네이버 지도로 길찾기</a>
     </div>
-  </section>
 
-  <p class="script cheers">Dress up &amp; Cheers! 🥂</p>
+    <p class="msg reveal" style="--i:5">와인과 함께하는 우리만의 연말 파티<br>예쁘게 차려입고 맛있는 거 먹으면서<br>행복한 추억 만들어보자</p>
+
+    <section id="draw" class="reveal" style="--i:6" hidden>
+      <p class="hello"><span id="name"></span>님, 카드를 눌러 뽑아 보세요</p>
+      <p class="tag">내 선물엔 <b id="tag"></b>번을 붙여 와 주세요</p>
+      <div class="cards">
+        <button class="card" type="button" aria-label="드레스코드 뽑기">
+          <div class="inner">
+            <div class="face front"><span class="small">내 포인트 컬러</span><span class="big">?</span></div>
+            <div class="face back"><div class="swatch" id="swatch"></div><span class="big" id="color"></span><span class="small">포인트 컬러</span></div>
+          </div>
+        </button>
+        <button class="card gift" type="button" aria-label="선물 뽑기">
+          <div class="inner">
+            <div class="face front"><span class="small">랜덤 선물</span><span class="big">?</span><span class="small" id="lock">11/27 오후 7시에 열려요</span></div>
+            <div class="face back"><span class="big"><span id="take"></span>번</span><span class="small">선물을 가져가요</span></div>
+          </div>
+        </button>
+      </div>
+    </section>
+
+    <p class="script cheers reveal" style="--i:7">Dress up &amp; Cheers! 🥂</p>
+  </div>
 </main>
+
+<button class="music" id="music" type="button" hidden>♪ 캐롤 끄기</button>
 
 <script>
   // 링크 # 뒤에 assign.js 가 넣어 둔 내 결과가 있다. 없으면 초대장만 보여 준다.
@@ -91,25 +211,117 @@
   // ponytail: 휴대폰 시계 기준이라 날짜를 바꾸면 미리 열린다. 친구끼리라 이 정도로 둔다.
   const OPEN_AT = new Date('2026-11-27T19:00:00+09:00');
   const isOpen = () => Date.now() >= OPEN_AT;
+  const $ = id => document.getElementById(id);
   let me;
   try {
     const b64 = location.hash.slice(1).replace(/-/g, '+').replace(/_/g, '/');
     me = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(b64), c => c.charCodeAt(0))));
-    document.getElementById('name').textContent = me.name;
-    document.getElementById('color').textContent = me.color;
-    document.getElementById('swatch').style.background = COLORS[me.color];
-    document.getElementById('tag').textContent = me.myTag;
-    if (isOpen()) document.getElementById('lock').textContent = '탭해서 열기';
-    document.getElementById('draw').hidden = false;
+    $('to').textContent = me.name;
+    $('name').textContent = me.name;
+    $('color').textContent = me.color;
+    $('swatch').style.background = COLORS[me.color];
+    $('tag').textContent = me.myTag;
+    if (isOpen()) $('lock').textContent = '탭해서 열기';
+    $('draw').hidden = false;
   } catch {}
+
   document.querySelectorAll('.card').forEach(c => c.onclick = () => {
     // 시간 확인은 누르는 순간에 한다. 페이지를 켜 둔 채 7시를 넘겨도 열린다.
     if (c.classList.contains('gift')) {
-      if (!isOpen()) return;
-      document.getElementById('take').textContent = me.take;
+      if (!isOpen()) {
+        c.classList.remove('shake');
+        void c.offsetWidth;
+        c.classList.add('shake');
+        return;
+      }
+      $('take').textContent = me.take;
     }
     c.classList.toggle('open');
   });
+
+  // 봉투: 첫 탭에 뒤집혀 봉인 면이 나오고, 두 번째 탭에 봉인이 떨어지며 편지가 올라온 뒤 초대장이 펼쳐진다.
+  const env = $('envelope');
+  env.onclick = () => {
+    if (env.classList.contains('turning') || env.classList.contains('open')) return;
+    if (!env.classList.contains('flipped')) {
+      env.classList.add('turning');
+      startCarol(); // 소리는 사용자가 누른 순간에만 켤 수 있다(모바일 자동재생 제한).
+      setTimeout(() => { // 옆으로 90도 돌아 안 보이는 순간에 면을 바꾼다
+        env.classList.add('flipped');
+        env.setAttribute('aria-label', '봉인 뜯기');
+        $('hint').textContent = '봉인을 눌러 열어 보세요';
+      }, 400);
+      setTimeout(() => env.classList.remove('turning'), 800);
+      return;
+    }
+    env.classList.add('open');
+    $('hint').style.visibility = 'hidden';
+    setTimeout(() => {
+      $('intro').classList.add('gone');
+      document.body.classList.add('opened');
+      $('music').hidden = false;
+    }, 1500);
+    setTimeout(() => $('intro').remove(), 2300);
+  };
+
+  // 눈: 캔버스에 점 70개를 떨어뜨린다. 좌표는 화면 비율(0~1)로 들고 있어서 회전해도 그대로다.
+  const cv = $('snow'), cx = cv.getContext('2d'), dpr = devicePixelRatio || 1;
+  const fit = () => { cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; };
+  fit(); addEventListener('resize', fit);
+  const flakes = Array.from({ length: 70 }, () => ({ x: Math.random(), y: Math.random(), r: 1 + Math.random() * 2.5, v: .3 + Math.random() * .7, w: Math.random() * 6.28 }));
+  const snow = () => {
+    cx.clearRect(0, 0, cv.width, cv.height);
+    cx.fillStyle = 'rgba(255,255,255,.85)';
+    for (const f of flakes) {
+      f.y += f.v * .0015; f.w += .01;
+      if (f.y > 1.02) { f.y = -.02; f.x = Math.random(); }
+      cx.beginPath();
+      cx.arc((f.x + Math.sin(f.w) * .01) * cv.width, f.y * cv.height, f.r * dpr, 0, 6.28);
+      cx.fill();
+    }
+    requestAnimationFrame(snow);
+  };
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) snow();
+
+  // 캐롤: Jingle Bells 후렴(1857년 곡, 저작권 만료)을 Web Audio 로 직접 연주한다. 음원 파일이 필요 없다.
+  const HZ = { C: 523.25, D: 587.33, E: 659.25, F: 698.46, G: 783.99 };
+  const SONG = ('E1 E1 E2 E1 E1 E2 E1 G1 C1.5 D.5 E4 F1 F1 F1.5 F.5 F1 E1 E1 E.5 E.5 E1 D1 D1 E1 D2 G2 ' +
+                'E1 E1 E2 E1 E1 E2 E1 G1 C1.5 D.5 E4 F1 F1 F1.5 F.5 F1 E1 E1 E.5 E.5 G1 G1 F1 D1 C4')
+    .split(' ').map(s => [HZ[s[0]], parseFloat(s.slice(1))]);
+  let ac, master, musicOn = true;
+  const bell = (t, hz, dur) => {
+    // 기본음에 두 배 배음을 살짝 얹고 빠르게 줄여서 종소리처럼 들리게 한다.
+    [[1, .22], [2.01, .07]].forEach(([mul, vol]) => {
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.frequency.value = hz * mul;
+      g.gain.setValueAtTime(.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol, t + .01);
+      g.gain.exponentialRampToValueAtTime(.0001, t + Math.max(dur, .3) * 1.6);
+      o.connect(g).connect(master);
+      o.start(t);
+      o.stop(t + dur * 1.6 + .4);
+    });
+  };
+  const playLoop = () => {
+    let t = ac.currentTime + .1;
+    for (const [hz, beats] of SONG) { bell(t, hz, beats * .36); t += beats * .36; }
+    setTimeout(playLoop, (t - ac.currentTime + 1.2) * 1000);
+  };
+  function startCarol() {
+    try {
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      master = ac.createGain();
+      master.gain.value = .6;
+      master.connect(ac.destination);
+      playLoop();
+    } catch { $('music').remove(); }
+  }
+  // 끄기는 볼륨만 0으로 내린다. 멈췄다 다시 켜면 예약해 둔 음이 겹치기 때문이다.
+  $('music').onclick = () => {
+    musicOn = !musicOn;
+    master.gain.setTargetAtTime(musicOn ? .6 : 0, ac.currentTime, .05);
+    $('music').textContent = musicOn ? '♪ 캐롤 끄기' : '♪ 캐롤 켜기';
+  };
 </script>
 </body>
 </html>
