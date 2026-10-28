@@ -10,9 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Parisienne&family=Diphylleia&family=Cormorant+Garamond:wght@500;600&family=Great+Vibes&display=swap" rel="stylesheet">
 <style>
-  :root { --cream: #fbf5ea; --ink: #3b2a22; --muted: #8a7566; --line: #e2d4c0; --red: #a51c2a; --wine: #9e1f2c; --green: #2f5d3a; --brown: #7a4b2a; --gold: #c9a75a; --gold-light: #d4b26a; --navy: #142038; --night: #0b1324; --dusk: #2a3b5c; --snow: #f6efe0; --ink-soft: #5e4a3a;
-    /* 종이 질감: 아주 옅은 노이즈. 오래된 얼룩 대신 결만 살린다. */
-    --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .33 0 0 0 0 .2 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  :root { --cream: #fbf5ea; --ink: #3b2a22; --muted: #8a7566; --line: #e2d4c0; --red: #a51c2a; --wine: #9e1f2c; --green: #2f5d3a; --brown: #7a4b2a; --gold: #c9a75a; --gold-light: #d4b26a; --navy: #142038; --night: #0b1324; --dusk: #2a3b5c; --snow: #f6efe0; --paper: linear-gradient(rgba(251,245,234,.55), rgba(251,245,234,.55)), url(paper-tex.jpg) 0 0 / 70px auto; --ink-soft: #5e4a3a; }
   * { box-sizing: border-box; margin: 0; }
   body { min-height: 100vh; background: radial-gradient(120% 60% at 50% 0%, var(--dusk), var(--navy) 45%, var(--night)) fixed var(--night); color: var(--ink); font-family: 'Gowun Batang', serif; line-height: 1.7; word-break: keep-all; }
   body:not(.opened) { overflow: hidden; }
@@ -26,24 +24,25 @@
   .intro { position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; padding: 16px; color: var(--snow); text-align: center; transition: opacity .7s, transform .7s; }
   .intro.gone { opacity: 0; pointer-events: none; }
   .date { font-family: 'Parisienne', cursive; font-size: 24px; color: var(--gold-light); }
-  .envelope { position: relative; display: block; width: min(330px, 86vw); aspect-ratio: 760 / 550; margin-top: 100px; padding: 0; border: 0; background: none; cursor: pointer; perspective: 900px; animation: arrive 1.1s cubic-bezier(.2,.9,.3,1.15) both, sway 4s ease-in-out 1.1s infinite; }
+  .envelope { position: relative; display: block; width: min(330px, 86vw); aspect-ratio: 760 / 550; margin-top: 24px; padding: 0; border: 0; background: none; cursor: pointer; perspective: 900px; animation: arrive 1.1s cubic-bezier(.2,.9,.3,1.15) both, sway 4s ease-in-out 1.1s infinite; }
   /* 기다리는 동안 밀랍과 잎 위로 빛이 한 번씩 지나간다. 흰 종이 위에선 안 보여서 봉인 모양으로만 오려 낸다 */
   .sheen { left: 26.97%; top: 4.36%; width: 47.24%; aspect-ratio: 359 / 471; z-index: 6; pointer-events: none; -webkit-mask: url(seal-sprig.png) 0 0 / 100% 100%; mask: url(seal-sprig.png) 0 0 / 100% 100%; background: linear-gradient(110deg, transparent 40%, rgba(255,245,225,.75) 50%, transparent 60%) 160% 0 / 250% 100% no-repeat; animation: sheen 5s ease-in-out 1.6s infinite; transition: opacity .2s; }
   .envelope.open .sheen { opacity: 0; }
   .envelope.open { animation: none; }
   .envelope > * { position: absolute; display: block; }
   .env-shadow { inset: 0; border-radius: 8px; box-shadow: 0 2px 3px rgba(0,0,0,.18), 0 20px 30px rgba(0,0,0,.55); }
-  .inside { inset: 0; z-index: 1; border-radius: 8px; background: linear-gradient(#cfc7b6, #e6dfd0 50%); }
+  /* 봉투 안쪽 면. 사진 종이 결에 그늘만 얹는다(안쪽이라 바깥보다 어둡다) */
+  .inside { inset: 0; z-index: 1; border-radius: 8px; background: linear-gradient(rgba(90,65,35,.06), rgba(90,65,35,.2) 50%), url(paper-tex.jpg) 0 0 / 70px auto; }
   /* 세 겹으로 접힌 편지지. .note 상자가 가운데 칸이고, 위 칸은 위로, 아래 칸은 아래로 붙어 있다.
      접혀 있을 땐 아래 칸이 먼저 올라와 덮고 그 위를 위 칸이 덮는다(위 칸 각도를 더 눕혀서 앞에 오게 한다).
      접힌 칸의 안쪽 면(.in)은 뒷면을 숨겨서 바깥 면(.out, 빈 종이)만 보인다. 크롬은 같은 평면이면 DOM 순서로 그리므로 .out 을 먼저 둔다. */
   .note { left: 7%; width: 86%; top: 10%; height: 78%; z-index: 2; transform-style: preserve-3d; color: var(--navy); transition: transform .8s cubic-bezier(.3,.7,.3,1) .85s; }
   .note > span { position: absolute; left: 0; right: 0; height: 100%; transform-style: preserve-3d; }
-  .note .in, .note .out { position: absolute; inset: 0; background: var(--noise), var(--cream); }
+  .note .in, .note .out { position: absolute; inset: 0; background: var(--paper); box-shadow: 0 1px 2px rgba(60,40,20,.15); }
   .note .in { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
   .note .in::before { content: ''; position: absolute; left: 6px; right: 6px; top: 0; bottom: 0; border: 0 solid var(--gold); border-width: 0 1px; }
   .n-mid { top: 0; }
-  .n-mid .in { background: linear-gradient(rgba(60,40,20,.08), transparent 10%, transparent 90%, rgba(60,40,20,.08)), var(--noise), var(--cream); }
+  .n-mid .in { background: linear-gradient(rgba(60,40,20,.08), transparent 10%, transparent 90%, rgba(60,40,20,.08)), var(--paper); }
   .n-top { bottom: 100%; transform-origin: bottom; transform: rotateX(-176deg); transition: transform .7s cubic-bezier(.4,.1,.3,1); }
   .n-top .in, .n-top .out { border-radius: 4px 4px 0 0; }
   /* 커져서 본문과 겹칠 때 장식과 You're invited 가 본문의 같은 자리에 오도록 위에 붙인다 */
@@ -61,16 +60,18 @@
   .note .footer { margin: 0 0 6px; font-size: 10px; }
   .n-top .in { gap: 0; }
   /* 사진에서 잰 덮개 모양: 양옆 12% 높이에서 시작해 (49.2%, 49.1%)에서 만난다 */
-  .body { inset: 0; z-index: 3; width: 100%; clip-path: polygon(0 11.8%, 49.2% 49.1%, 100% 12%, 100% 100%, 0 100%); }
-  .flap { inset: 0; z-index: 4; transform-origin: top; transform-style: preserve-3d; transition: transform .6s ease-in .25s, z-index 0s .55s; }
+  /* 주머니(앞판). clip-path 가 그림자까지 잘라 내서 그림자는 바깥 span 에 준다. 입구 아래로 편지와 안쪽에 그늘이 진다 */
+  .body { inset: 0; z-index: 3; filter: drop-shadow(0 -1px 1.5px rgba(60,40,20,.35)) drop-shadow(0 -3px 6px rgba(60,40,20,.12)); }
+  .body img { display: block; width: 100%; clip-path: polygon(0 11.8%, 49.2% 49.1%, 100% 12%, 100% 100%, 0 100%); }
+  .flap { inset: 0; z-index: 4; transform-origin: top; transform-style: preserve-3d; transition: transform .6s ease-in .4s, z-index 0s .7s, opacity .15s .73s; }
   .flap > * { position: absolute; inset: 0; width: 100%; }
   .flap img { clip-path: polygon(0 0, 100% 0, 100% 12%, 49.2% 49.1%, 0 11.8%); backface-visibility: hidden; -webkit-backface-visibility: hidden; }
   /* 덮개 안쪽 면. 크롬이 이 면까지 뒷면으로 보고 숨겨 버려서 backface 는 그대로 두고, DOM 에서 사진 면 뒤에 깔아 닫혀 있을 땐 가려지게 한다.
      뒤집혔을 때 앞면과 같은 모양이 되도록 위아래를 뒤집은 좌표를 쓴다 */
-  .flap span { background: #ddd5c5; transform: rotateX(180deg); clip-path: polygon(0 100%, 100% 100%, 100% 88%, 49.2% 50.9%, 0 88.2%); }
+  .flap span { background: linear-gradient(rgba(90,65,35,.04), rgba(90,65,35,.1)), url(paper-tex.jpg) 0 0 / 70px auto; transform: rotateX(180deg); clip-path: polygon(0 100%, 100% 100%, 100% 88%, 49.2% 50.9%, 0 88.2%); }
   /* transform-origin 은 사진에서 잰 봉인 한가운데 */
-  .seal { left: 26.97%; top: 4.36%; z-index: 5; width: 47.24%; transform-origin: 48% 53%; filter: drop-shadow(-2px 3px 3px rgba(0,0,0,.25)); animation: beat 2.4s ease-in-out 1.4s infinite; }
-  .envelope.open .seal { animation: wobble .25s, pop .5s .25s forwards; }
+  .seal { left: 26.97%; top: 4.36%; z-index: 5; width: 47.24%; transform-origin: 48% 53%; filter: drop-shadow(-3px 4px 3px rgba(60,40,20,.3)); animation: beat 2.4s ease-in-out 1.4s infinite; }
+  .envelope.open .seal { animation: wobble .25s, pop .4s .2s forwards; }
   .envelope.open .flap { transform: rotateX(180deg); z-index: 1; }
   /* 1) 봉투 위로 다 빠져나온다 2) 봉투 앞으로 와서 가운데로 내려오고 봉투는 사라진다 3) 위 칸, 아래 칸 순서로 펼친다 */
   .envelope.open .note { transform: translateY(-118%); }
@@ -79,6 +80,19 @@
   .envelope.spread .n-top, .envelope.spread .n-bot { transform: none; }
   .intro.opening > p { animation: fade-out .5s forwards; }
   @keyframes fade-out { to { opacity: 0; } }
+  /* 닫힌 사진의 덮개가 옆으로 서는 순간(약 0.8초) 열린 봉투 사진으로 바꿔 끼운다.
+     열린 사진은 몸통 윗변이 봉투 상자 윗변에 오도록 위로 49.16% 올리고(덮개가 위로 솟아 있다),
+     앞판은 주머니 입구(사다리꼴)만 잘라 내서 편지가 그 사이로 나오게 한다 */
+  .open-back, .open-front { left: 0; top: -49.16%; width: 100%; opacity: 0; transition: opacity .15s .73s; }
+  .open-back { z-index: 1; clip-path: polygon(0 32.98%, 100% 32.98%, 100% 100%, 0 100%); }
+  /* 열린 사진의 덮개만 떼어, 닫힌 덮개가 옆으로 선 순간부터 접힌 선(32.98%)을 축으로 위로 펴지게 한다 */
+  .open-flap { left: 0; top: -49.16%; width: 100%; z-index: 1; clip-path: polygon(0 0, 100% 0, 100% 32.98%, 0 32.98%); transform-origin: 50% 32.98%; transform: scaleY(0); transition: transform .35s cubic-bezier(.2,.7,.3,1) .8s; }
+  .envelope.open .open-flap { transform: none; }
+  .open-front { z-index: 3; filter: drop-shadow(0 -1px 1.5px rgba(60,40,20,.3)); }
+  .open-front img { display: block; width: 100%; clip-path: polygon(0 32.98%, 35.63% 47.5%, 59.36% 47.5%, 100% 32.98%, 100% 100%, 0 100%); }
+  .envelope.open .open-back, .envelope.open .open-front { opacity: 1; }
+  .inside, .body { transition: opacity .15s .73s; }
+  .envelope.open .inside, .envelope.open .body, .envelope.open .flap { opacity: 0; }
   .to { font-size: 28px; --stroke: .7px; }
   .to i { font-family: 'Parisienne', cursive; font-style: normal; font-size: 30px; -webkit-text-stroke: 0; margin-right: 8px; }
   .hint { margin-top: -24px; font-size: 16px; --stroke: .35px; color: var(--gold-light); animation: fade-up .8s 1.5s both, blink 1.6s ease-in-out 2.3s infinite; }
@@ -95,7 +109,7 @@
 
   /* 초대장 본문. 크림색 종이에 금색 이중 테두리, 자간 넓힌 영문 대문자와 큰 필기체 제목 */
   main { position: relative; z-index: 1; max-width: 440px; margin: 0 auto; padding: 32px 16px 96px; filter: drop-shadow(0 20px 40px rgba(0,0,0,.4)); }
-  .paper { position: relative; background: var(--noise), var(--cream); border-radius: 4px; padding: 44px 22px 40px; text-align: center; }
+  .paper { position: relative; background: linear-gradient(rgba(251,245,234,.55), rgba(251,245,234,.55)), url(paper-tex.jpg) 0 0 / 85px auto; border-radius: 4px; padding: 44px 22px 40px; text-align: center; }
   .paper::before { content: ''; position: absolute; inset: 12px; border: 1px solid var(--gold); outline: 1px solid rgba(201,167,90,.45); outline-offset: 3px; pointer-events: none; }
   /* 봉투를 열기 전엔 뒤에 비치지 않게 숨긴다. 열리면 커지는 편지 뒤로 서서히 드러난다 */
   main { transition: opacity .6s .35s; }
@@ -166,7 +180,10 @@
       <span class="n-bot"><span class="out"></span><span class="in"><span class="caps footer">Dress up &amp; Cheers</span><small>레드 · 그린 · 브라운 포인트 컬러</small></span></span>
       <span class="n-top"><span class="out"></span><span class="in"><span class="caps">You're invited</span><span class="rule"></span><span class="year">2026</span><span class="title">Girls Party</span></span></span>
     </span>
-    <img class="body" src="envelope-clean.png" alt="">
+    <span class="body"><img src="envelope-clean.png" alt=""></span>
+    <img class="open-back" src="envelope-open.png" alt="">
+    <img class="open-flap" src="envelope-open.png" alt="">
+    <span class="open-front"><img src="envelope-open.png" alt=""></span>
     <span class="flap"><span></span><img src="envelope-clean.png" alt=""></span>
     <img class="seal" src="seal-sprig.png" alt="">
     <span class="sheen"></span>
