@@ -1,0 +1,39 @@
+# 11/27 저녁에 선물 열쇠(key.txt)를 올려서 초대장의 랜덤 선물 카드가 열리게 한다.
+# 예약 실행은 몇십 분씩 늦어질 수 있어 7시보다 일찍(18:40 KST) 건다. 페이지는 7시 전엔 열쇠가 있어도 열지 않는다.
+# 자동이 안 돌면 Actions 탭에서 "Run workflow" 로 직접 돌린다. test 를 켜면 열쇠 대신 reveal-test.txt 만 올린다.
+name: 선물 열쇠 공개
+
+on:
+  schedule:
+    - cron: '40 9 27 11 *' # UTC 09:40 = 한국 18:40
+  workflow_dispatch:
+    inputs:
+      test:
+        description: '테스트: 열쇠 대신 reveal-test.txt 만 올린다'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  reveal:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 파일 쓰고 푸시
+        env:
+          KEY: ${{ secrets.GIFT_KEY }}
+          TEST: ${{ inputs.test }}
+        run: |
+          if [ "$TEST" = "true" ]; then
+            FILE=reveal-test.txt; date -u > "$FILE"
+          else
+            if [ -z "$KEY" ]; then echo "GIFT_KEY 비밀값이 비어 있습니다"; exit 1; fi
+            FILE=key.txt; printf '%s\n' "$KEY" > "$FILE"
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f "$FILE"
+          git diff --cached --quiet || git commit -m "선물 열쇠 공개 ($FILE)"
+          git push
